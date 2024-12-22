@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <title>사복쌤의 계산기</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+        integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 6px;
+            background-color: black;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, AppleSDGothicNeo, sans-serif;
+            font-size: 14px;
+        }
+
+        .block {
+            padding: 12px;
+            border-radius: 10px;
+            background-color: #161618;
+        }
+
+        .subblock {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            background-color: #212124;
+        }
+
+        td {
+            padding-right: 6px;
+        }
+
+        .column {
+            float: left;
+            width: 33.33%;
+            text-align: center;
+        }
+
+        .row:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        #progress {
+            appearance: none;
+            height: 6px;
+        }
+
+        #progress::-webkit-progress-bar {
+            background: #f0f0f0;
+            border-radius: 10px;
+            box-shadow: inset 3px 3px 10px #ccc;
+        }
+
+        #progress::-webkit-progress-value {
+            border-radius: 10px;
+            background: #0077d0;
+        }
+
+        #progress-status {
+            margin-top: 2px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .subblock div {
+            font-size: 17px;
+        }
+
+        .subblock .header {
+            font-size: x-small;
+        }
+    </style>
+
+    <script>
+        class Agent {
+            /**
+             * @param {Date} startDate
+             */
+            constructor(startDate) {
+                this.startDate = startDate
+                this.endDate = new Date(startDate).setMonth(startDate.getMonth + 21)
+            }
+
+            /**
+             * @param {string} cls
+             */
+            getPromotionDay(cls) {
+                let s = new Date(this.startDate)
+                if (this.startDate.getDate() != 1) {
+                    // s = new Date(s.setMonth(s.getMonth() + 1))
+                    s = new Date(s.setDate(1))
+                }
+                return {
+                    이등병: this.startDate,
+                    일병: new Date(s.setMonth(s.getMonth() + 2)),
+                    상병: new Date(s.setMonth(s.getMonth() + 6)),
+                    병장: new Date(s.setMonth(s.getMonth() + 6))
+                }[cls]
+            }
+
+            getCurrentWorkingDays() {
+                return Math.ceil((new Date() - this.startDate) / (1000 * 60 * 60 * 24))
+            }
+
+            static CLASSES = ["이등병", "일병", "상병", "병장"]
+
+            /**
+             * @param {Date} date
+             */
+            getClass(date) {
+                for (let cls of Agent.CLASSES.toReversed())
+                    if (this.getPromotionDay(cls) <= date)
+                        return cls
+                return "[오류]"
+            }
+
+            getSurplusPrommotionDays() {
+                let curClass = this.getClass(new Date())
+                if (curClass == "병장") return 0
+                let nextClass = Agent.CLASSES[Agent.CLASSES.indexOf(curClass) + 1]
+                return Math.floor((this.getPromotionDay(nextClass) - new Date()) / (1000 * 60 * 60 * 24))
+            }
+        }
+
+        window.onload = () => {
+            let ddayDom = document.querySelector("#dday")
+            let pctDom = document.querySelector("#pct")
+            let progressbar = document.querySelector("#progress")
+            
+            let salaryDom = document.querySelector("#salary")
+
+            let surplusPrmDaysDom = document.querySelector("#surplusPromotionDays")
+            let curDaysDom = document.querySelector("#currentWorkingDays")
+            let totalDaysDom = document.querySelector("#totalWorkingDays")
+
+            let startDate = new Date("2024-10-24")
+            let endDate = new Date("2026-07-24") // 하루 뒤로 밀어서 쓰기. 즉, 소집 해제 직후 날짜.
+
+            let agent = new Agent(startDate)
+
+            setInterval(() => {
+                const maxDelta = (endDate - startDate)
+                let pctValue = 100 - ((endDate - new Date()) / maxDelta * 100)
+                pctDom.textContent = `${pctValue.toFixed(7)}%`
+                salaryDom.textContent = `${agent.getClass(new Date())} ______원`    
+                surplusPrmDaysDom.textContent = agent.getSurplusPrommotionDays()
+                totalDaysDom.textContent = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24))
+                ddayDom.textContent = `D-${Math.floor((endDate - new Date()) / (1000 * 60 * 60 * 24))}`
+                curDaysDom.textContent = agent.getCurrentWorkingDays()
+                progressbar.value = pctValue;
+            }, 10)
+        }
+    </script>
+</head>
+
+<body>
+    <h2 style="margin-top: 0">Dashboard</h2>
+    <div class="block">
+        <table>
+            <tbody>
+                <tr>
+                    <td><i class="fa-solid fa-location-dot"></i></td>
+                    <td><b>서울특별시교육청</b></td>
+                </tr>
+                <tr>
+                    <td><i class="fa-solid fa-user"></i></td>
+                    <td id="salary"></td>
+                </tr>
+                <tr>
+                    <td><i class="fa-solid fa-calendar"></i></td>
+                    <td>2024.10.24 - 2026.07.23</td>
+                </tr>
+            </tbody>
+        </table>
+        <progress id="progress" min="0" max="100" style="width: 100%"></progress>
+        <div id="progress-status">
+            <b id="dday">D-ddd</b>
+            <div id="pct">dd.ddddddd%</div>
+        </div>
+        <div class="subblock row">
+            <div class="column" style="margin-left: -1px; border-right: 0.5px solid 	#666666;">
+                <div class="header">남은 진급일</div>
+                <div id="surplusPromotionDays">ddd</div>
+            </div>
+            <div class="column" style="margin-left: -1px; border-right: 0.5px solid 	#666666;">
+                <div class="header">총 근무일</div>
+                <div id="totalWorkingDays">ddd</div>
+            </div>
+            <div class="column">
+                <div class="header">현재 근무일</div>
+                <div id="currentWorkingDays">dd</div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
