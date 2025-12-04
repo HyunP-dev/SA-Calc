@@ -3,17 +3,17 @@
     "name": "사복쌤의 계산기",
     "icons": [
         {
-            "src": "/favicon-128x128.png",
+            "src": "./favicon-128x128.png",
             "sizes": "128x128",
             "type": "image/png"
         },
         {
-            "src": "/favicon-512x512.png",
+            "src": "./favicon-512x512.png",
             "sizes": "512x512",
             "type": "image/png"
         }
     ],
-    "start_url": "/",
+    "start_url": ".",
     "display": "standalone",
     "theme_color": "black",
     "background_color": "black"
