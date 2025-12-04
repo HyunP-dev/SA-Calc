@@ -1,4 +1,4 @@
-window.onload = () => {
+window.onload = async () => {
     let ddayDom = document.querySelector("#dday")
     let pctDom = document.querySelector("#pct")
     let progressbar = document.querySelector("#progress")
@@ -48,12 +48,28 @@ window.onload = () => {
         salaryViewDom.textContent = `${salary.toLocaleString()} KRW`
     }
 
+    let leavesData = await (await fetch("assets/json/leaves.json")).json()
+
+    function refreshView() {
+        let year = date.getFullYear()
+        let month = date.getMonth()
+        let filter = String(year) + "-" + String(month + 1).padStart(2, '0') + "-"
+
+        leavesData.forEach(element => {
+            if (!element.date.startsWith(filter)) return
+            console.log(element)
+        });
+    }
+
+    refreshView()
+
     document.querySelector("#beforeBtn").onclick = () => {
         date = new Date(date.getFullYear(), date.getMonth() - 1, 15)
         let currentRangeStart = new Date(date.getFullYear(), date.getMonth(), 1)
         let currentRangeEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0)
         dateRangeViewDom.textContent = `${currentRangeStart.format()} ~ ${currentRangeEnd.format()}`
         refreshSalaryView()
+        refreshView()
     }
 
     document.querySelector("#nextBtn").onclick = () => {
@@ -62,5 +78,8 @@ window.onload = () => {
         let currentRangeEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0)
         dateRangeViewDom.textContent = `${currentRangeStart.format()} ~ ${currentRangeEnd.format()}`
         refreshSalaryView()
+        refreshView()
     }
+
+
 }
